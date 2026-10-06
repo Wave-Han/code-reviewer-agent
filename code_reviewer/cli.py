@@ -7,7 +7,9 @@ from code_reviewer.config import ensure_utf8_stdout, load_config
 def build_client(config):
     """Build ResilientClient: Zhipu primary, DeepSeek fallback."""
     from code_reviewer.llm.client import DeepSeekChatClient, ResilientClient, ZhipuChatClient
-    primary = ZhipuChatClient(config.zhipu_api_key, model=config.model)
+    # websearch disabled: prevents sending reviewed code to external search
+    primary = ZhipuChatClient(config.zhipu_api_key, model=config.model,
+                              enable_websearch=False)
     if config.deepseek_api_key:
         fallback = DeepSeekChatClient(config.deepseek_api_key, model=config.deepseek_model)
         return ResilientClient(primary, fallback,
@@ -65,6 +67,7 @@ def review_diff():
 
 
 def main():
+    ensure_utf8_stdout()
     if len(sys.argv) < 2:
         print("用法: python -m code_reviewer review <file>")
         print("      git diff | python -m code_reviewer review-diff")

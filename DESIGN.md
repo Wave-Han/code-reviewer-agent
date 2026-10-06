@@ -5,7 +5,7 @@
 ## 架构(迁移 AgentRadar 模式)
 
 ```
-输入(文件路径 / diff)→ ReAct Agent → 工具调用(读文件/搜代码)→ 结构化审查报告
+输入(文件路径 / diff)→ ReAct Agent → 工具调用(读文件)→ 结构化审查报告
 ```
 
 ## MVP 范围(Phase 1)
@@ -14,7 +14,7 @@
 |---|---|
 | 输入 | 文件路径(`review <path>`)或 stdin diff(`review-diff`) |
 | 审查 | 单 agent · 4 维度(Bug/安全/性能/风格) |
-| 工具 | read_file / search_code / get_file_info |
+| 工具 | read_file / get_file_info |
 | 输出 | 结构化报告(🔴Critical / 🟡Warning / 🔵Suggestion / 📊总结) |
 | LLM | GLM-4(主)+ DeepSeek(兜底),复用 ResilientClient 模式 |
 
@@ -32,8 +32,7 @@
 
 | 组件 | 说明 |
 |---|---|
-| `tools/file_ops.py` | read_file / get_file_info(安全路径校验) |
-| `tools/search.py` | search_code(grep 式搜索) |
+| `tools/file_ops.py` | read_file / get_file_info |
 | `REVIEW_TEMPLATE` | 审查报告输出模板 |
 | `SYSTEM_PROMPT` | 代码审查专家(4 维度) |
 | `diff_parser.py` | 解析 git diff(提取 +/- 行) |
@@ -44,7 +43,7 @@
 code_reviewer/
 ├── code_reviewer/
 │   ├── __init__.py
-│   ├── cli.py              # 入口 + REPL
+│   ├── cli.py              # 入口(one-shot CLI)
 │   ├── config.py
 │   ├── diff_parser.py      # git diff 解析
 │   ├── agent/
@@ -53,8 +52,7 @@ code_reviewer/
 │   ├── llm/
 │   │   └── client.py       # GLM+DeepSeek(原样迁移)
 │   └── tools/
-│       ├── file_ops.py     # 读文件/文件信息
-│       └── search.py       # 代码搜索
+│       └── file_ops.py     # 读文件/文件信息
 ├── tests/
 ├── requirements.txt
 ├── .env.example
@@ -76,7 +74,4 @@ python -m code_reviewer review path/to/file.py
 
 # 审查 git diff(管道输入)
 git diff | python -m code_reviewer review-diff
-
-# 交互模式
-python -m code_reviewer repl
 ```
