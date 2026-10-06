@@ -58,6 +58,19 @@ def test_parse_diff_multiple_files():
     assert result["utils.py"]["removed"] == ["    return None"]
 
 
+def test_parse_diff_deleted_file_not_attributed_to_previous():
+    diff = (
+        "diff --git a/app.py b/app.py\n"
+        "--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-x = 1\n+x = 2\n"
+        "diff --git a/old.py b/old.py\n"
+        "--- a/old.py\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-legacy_a\n-legacy_b\n"
+    )
+    result = parse_diff(diff)
+    assert "app.py" in result
+    assert result["app.py"]["added"] == ["x = 2"]
+    assert result["app.py"]["removed"] == ["x = 1"]  # NOT including legacy lines
+
+
 def test_format_changes_produces_readable_output():
     changes = parse_diff(SAMPLE_DIFF)
     output = format_changes(changes)

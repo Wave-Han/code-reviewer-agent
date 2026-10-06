@@ -11,6 +11,11 @@ def parse_diff(diff_text: str) -> dict[str, dict]:
             current_file = match.group(1)
             result[current_file] = {"added": [], "removed": []}
             continue
+        elif line.startswith("+++"):
+            # e.g. "+++ /dev/null" for a deleted file: no target file,
+            # subsequent removed lines must not leak into the previous file.
+            current_file = None
+            continue
         if current_file is None:
             continue
         if line.startswith("+") and not line.startswith("+++"):
